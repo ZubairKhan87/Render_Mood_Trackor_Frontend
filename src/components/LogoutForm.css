@@ -1,0 +1,53 @@
+.ant-logout-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f7f7f7;
+  }
+  
+  .ant-logout-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .ant-logout-icon-container {
+    margin-bottom: 20px;
+  }
+  
+  .ant-logout-icon {
+    width: 40px;
+    height: 40px;
+    color: #333;
+  }
+  
+  .ant-logout-title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .ant-logout-button {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .ant-logout-button:disabled {
+    background-color: #ddd;
+  }
+  
+  .ant-logout-error {
+    color: red;
+    font-size: 0.9rem;
+    margin-top: 10px;
+  }
+  
