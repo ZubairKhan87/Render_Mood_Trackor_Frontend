@@ -103,15 +103,13 @@ const SignUpForm = () => {
         setTimeout(() => {
           navigate('/emotions');
         }, 1500);
-      } else {
-        setError(response.data.detail || "Signup failed");
       }
-    } catch (err) {
-      setError(err.response?.data?.detail || "Network error. Please try again.");
+    } catch (error) {
+      setError(error.response?.data?.detail || "Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
-  };
+};
   
   const togglePasswordVisibility = (field) => {
     setShowPassword(prev => ({
