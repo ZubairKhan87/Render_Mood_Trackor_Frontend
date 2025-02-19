@@ -14,6 +14,9 @@ const myBaseUrl = isProduction
 const axiosInstance = axios.create({
   baseURL: myBaseUrl,
   timeout: 10000,
+  withCredentials: true,
+  xsrfCookieName: 'csrftoken',
+  xsrfHeaderName: 'X-CSRFToken',
   headers: {
     'Content-Type': 'application/json',
     accept: "application/json"
