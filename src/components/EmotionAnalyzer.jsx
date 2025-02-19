@@ -2,6 +2,8 @@ import React, { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
+import axiosInstance from "./axiosInstance";
+import handleLogout from './Logout';
 import { 
   Volume2, // Changed from VolumeUp
   Music4 as Music, // Changed from Music 
@@ -132,9 +134,9 @@ const EmotionAnalyzer = () => {
   }, []);
 
   useEffect(() => {
-    const userData = localStorage.getItem('userData');
+    const userData = localStorage.getItem("userData");
     if (!userData) {
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -148,60 +150,85 @@ const EmotionAnalyzer = () => {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:8000/api/analyze/", {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
+      const response = await axiosInstance.post(
+        "/api/analyze/",
+        {
           emojis: selectedEmojis,
           text: textInput.trim(),
-        }),
-      });
+        },
+        {
+          withCredentials: true, // Ensure cookies are sent
+        }
+      );
 
       if (response.status === 401) {
-        localStorage.removeItem('userData');
-        navigate('/login');
+        localStorage.removeItem("userData");
+        navigate("/login");
         return;
       }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || data.detail || "Analysis failed");
-      }
-
-      setResult(data);
+      setResult(response.data);
       setShowRecommendationModal(true);
     } catch (error) {
-      setError(error.message || "An unexpected error occurred");
+      setError(error.response?.data?.error || "An unexpected error occurred");
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleSpeakRecommendation = () => {
-    if (result?.recommendation) {
-      const synth = window.speechSynthesis;
-      const utterance = new SpeechSynthesisUtterance(result.recommendation);
-      
+    if (!result?.recommendation) return;
+  
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(result.recommendation);
+  
+    // Wait for voices to be loaded
+    const setVoice = () => {
       const voices = synth.getVoices();
+      
+      // Priority list of preferred female voices
+      const preferredVoices = [
+        'Samantha',
+        'Microsoft Zira Desktop',
+        'Google UK English Female',
+        'Karen'
+      ];
+      
+      // Find the first available preferred voice
       const femaleVoice = voices.find(voice => 
         voice.lang.includes('en') && 
-        (voice.name.toLowerCase().includes('female') || 
-        voice.name.includes('Samantha') || 
-        voice.name.includes('Microsoft Zira'))
+        (preferredVoices.some(name => voice.name.includes(name)) ||
+         voice.name.toLowerCase().includes('female'))
       );
-      
-      if (femaleVoice) utterance.voice = femaleVoice;
-      
-      utterance.rate = 0.9;
-      utterance.pitch = 1.1;
-      utterance.volume = 1.0;
-      
-      synth.speak(utterance);
+  
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+    };
+  
+    // Handle both immediate and async voice loading
+    if (synth.getVoices().length) {
+      setVoice();
+    } else {
+      synth.addEventListener('voiceschanged', setVoice);
     }
+  
+    // Natural speech settings
+    utterance.rate = 0.80;      // Slightly slower for more natural pace
+    utterance.pitch = 1.05;     // Slightly higher pitch for female voice
+    utterance.volume = 1.0;     // Full volume
+    
+    // Add subtle prosody variations
+    const sentences = result.recommendation.split(/[.!?]+/);
+    sentences.forEach((sentence, index) => {
+      if (index > 0) {
+        // Add slight pause between sentences
+        utterance.text += ' ... ';
+      }
+    });
+  
+    synth.speak(utterance);
   };
 
   const handleSeeSongs = () => {
@@ -214,27 +241,30 @@ const EmotionAnalyzer = () => {
 
   return (
     <div className={`main-container ${currentTheme}`}>
-      <div className="fixed top-4 right-4 flex gap-4 z-50">
-        {/* <motion.button 
-          className="theme-toggle"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={toggleTheme}
-        >
-          {currentTheme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-        </motion.button> */}
-        <motion.button 
-          className="theme-toggle flex items-center gap-2"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleDashboard}
-          title="View Emotion History"
-        >
-          <BarChart2 size={20} />
-          <span className="text-sm">Track History</span>
-        </motion.button>
-      </div>
+      <div className="header-buttons">
+  {/* Left side - Track Emotion History button */}
+  <motion.button 
+    className="header-button"
+    whileHover={{ scale: 1.1 }}
+    whileTap={{ scale: 0.9 }}
+    onClick={handleDashboard}
+    title="View Emotion History"
+  >
+    <BarChart2 size={20} />
+    <span className="text-sm">Emotion History</span>
+  </motion.button>
 
+  {/* Right side - Logout button */}
+  <motion.button 
+    className="header-button"
+    whileHover={{ scale: 1.1 }}
+    whileTap={{ scale: 0.9 }}
+    onClick={handleLogout}
+    title="Logout"
+  >
+    <span className="text-sm">Logout</span>
+  </motion.button>
+</div>
       <div className="animated-background">
         <div className="circle circle1"></div>
         <div className="circle circle2"></div>
@@ -414,7 +444,7 @@ const EmotionAnalyzer = () => {
               exit={{ scale: 0.8, opacity: 0 }}
             >
               <div className="modal-header">
-                <h2>Your Emotional Analysis</h2>
+                <h2>It Seems that your Feeling</h2>
                 <motion.div 
                   className="emotion-badge"
                   initial={{ y: 20, opacity: 0 }}
@@ -454,7 +484,7 @@ const EmotionAnalyzer = () => {
                     whileTap={{ scale: 0.95 }}
                   >
                     <Music className="inline mr-2" size={20} />
-                    Discover Music
+                    Listen Music
                   </motion.button>
                   
                   <motion.button 

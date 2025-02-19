@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import axiosInstance from './axiosInstance';
 const SpotifyPlayer = ({ trackUri }) => {
   const [player, setPlayer] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -10,37 +10,41 @@ const SpotifyPlayer = ({ trackUri }) => {
     const script = document.createElement("script");
     script.src = "https://sdk.scdn.co/spotify-player.js";
     script.async = true;
-
+  
     document.body.appendChild(script);
-
+  
     window.onSpotifyWebPlaybackSDKReady = () => {
       const spotifyPlayer = new window.Spotify.Player({
         name: 'Mood Music Player',
-        getOAuthToken: cb => {
-          fetch('http://127.0.0.1:8000/api/get-spotify-token/')
-            .then(response => response.json())
-            .then(data => cb(data.token));
+        getOAuthToken: async (cb) => {
+          try {
+            const response = await axiosInstance.get('/api/get-spotify-token/');
+            cb(response.data.token);
+          } catch (error) {
+            console.error('Error fetching Spotify token:', error);
+          }
         }
       });
-
+  
       setPlayer(spotifyPlayer);
-
+  
       spotifyPlayer.addListener('ready', ({ device_id }) => {
         console.log('Ready with Device ID', device_id);
       });
-
+  
       spotifyPlayer.addListener('not_ready', ({ device_id }) => {
         console.log('Device ID has gone offline', device_id);
       });
-
-      spotifyPlayer.addListener('player_state_changed', state => {
+  
+      spotifyPlayer.addListener('player_state_changed', (state) => {
         if (!state) return;
         setCurrentTrack(state.track_window.current_track);
         setIsPaused(state.paused);
       });
-
+  
       spotifyPlayer.connect();
     };
+  
 
     return () => {
       if (player) {

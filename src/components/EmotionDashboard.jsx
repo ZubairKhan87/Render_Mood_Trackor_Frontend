@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 import { Calendar, Clock, ChevronDown, BarChart2, PieChart as PieChartIcon, TrendingUp } from 'lucide-react';
 import './EmotionDashboard.css';
-
+import axiosInstance from './axiosInstance';
 const EmotionDashboard = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [timeRange, setTimeRange] = useState('day');
@@ -42,11 +42,16 @@ const EmotionDashboard = () => {
   useEffect(() => {
     if (analyticsData?.emotion_distribution) {
       // Initialize selected emotions based on the distribution data
-      const emotionsFromDistribution = analyticsData.emotion_distribution.map(item => item.mood);
-      const initialEmotions = emotionsFromDistribution.reduce((acc, emotion) => {
-        acc[emotion] = true;
-        return acc;
-      }, {});
+      const emotionsFromDistribution = analyticsData.emotion_distribution.map(
+        (item) => item.mood
+      );
+      const initialEmotions = emotionsFromDistribution.reduce(
+        (acc, emotion) => {
+          acc[emotion] = true;
+          return acc;
+        },
+        {}
+      );
       setSelectedEmotions(initialEmotions);
     }
   }, [analyticsData]);
@@ -57,31 +62,34 @@ const EmotionDashboard = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/analytics/?range=${timeRange}&interval=${interval}`, {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      
+      const response = await axiosInstance.get(
+        `/api/analytics/?range=${timeRange}&interval=${interval}`,
+        { withCredentials: true } // Ensure cookies are sent
+      );
+
+      const data = response.data;
+
       // Process the time series data to include all emotions
       if (data.emotion_distribution && data.emotions_over_time) {
-        const allEmotions = data.emotion_distribution.map(item => item.mood);
-        const processedTimeData = data.emotions_over_time.map(timePoint => {
+        const allEmotions = data.emotion_distribution.map((item) => item.mood);
+        const processedTimeData = data.emotions_over_time.map((timePoint) => {
           const newTimePoint = { period: timePoint.period };
-          allEmotions.forEach(emotion => {
+          allEmotions.forEach((emotion) => {
             newTimePoint[emotion] = timePoint[emotion] || 0;
           });
           return newTimePoint;
         });
         data.emotions_over_time = processedTimeData;
       }
-      
+
       setAnalyticsData(data);
       setIsLoading(false);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error("Error fetching analytics:", error);
       setIsLoading(false);
     }
   };
+
 
   const handleLegendClick = (emotion) => {
     setSelectedEmotions(prev => ({
@@ -330,7 +338,7 @@ const EmotionDashboard = () => {
           </div>
 
           <div className="recent-emotions-card">
-            <h2 className="chart-title">Recent Emotions</h2>
+            <h2 className="chart-title">Your Recent Emotional Journey</h2>
             <div className="emotions-list">
               {analyticsData.recent_emotions.map((emotion, index) => (
                 <div 

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LogIn, Eye, EyeOff, Heart, Music, Brain, Check, CloudMoon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import "./LoginForm.css";
-
+import axiosInstance from './axiosInstance';
 const LoginForm = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -42,12 +42,11 @@ const LoginForm = () => {
   useEffect(() => {
     const getCsrfToken = async () => {
       try {
-        await fetch('http://localhost:8000/api/get-csrf-token/', {
-          method: 'GET',
-          credentials: 'include',
+        await axiosInstance.get("/api/get-csrf-token/", {
+          withCredentials: true, // Ensure cookies are sent
         });
       } catch (error) {
-        console.error('Error fetching CSRF token:', error);
+        console.error("Error fetching CSRF token:", error);
       }
     };
     getCsrfToken();
@@ -61,36 +60,35 @@ const LoginForm = () => {
 
     try {
       const csrfToken = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('csrftoken='))
-        ?.split('=')[1];
+        .split("; ")
+        .find((row) => row.startsWith("csrftoken="))
+        ?.split("=")[1];
 
-      const response = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-        credentials: 'include',
-        body: JSON.stringify({
+      const response = await axiosInstance.post(
+        "/api/login/",
+        {
           email: formData.email,
           password: formData.password,
-        }),
-      });
+        },
+        {
+          headers: {
+            "X-CSRFToken": csrfToken, // Send CSRF token
+          },
+          withCredentials: true, // Include cookies for authentication
+        }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         setSuccess("Login successful!");
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        localStorage.setItem("userData", JSON.stringify(response.data.user));
         setTimeout(() => {
-          navigate('/emotions');
+          navigate("/emotions");
         }, 1500);
       } else {
-        setError(data.detail || 'Login failed');
+        setError(response.data.detail || "Login failed");
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }

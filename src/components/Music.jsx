@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Music.css';
-
+import axiosInstance from './axiosInstance';
 const Music = () => {
   const [songs, setSongs] = useState([]);
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
@@ -39,12 +39,12 @@ const Music = () => {
   const fetchSongs = async () => {
     setIsLoading(true);
     setError('');
-
+  
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/fetch-songs/', {
+      const response = await axiosInstance.post('/api/fetch-songs/', {
         emotion: emotion.toLowerCase(),
       });
-
+  
       if (response.data.songs && response.data.songs.length > 0) {
         setSongs(response.data.songs);
       } else {
@@ -56,7 +56,7 @@ const Music = () => {
       setIsLoading(false);
     }
   };
-
+  
   const handlePlayPause = (song) => {
     if (!audioRef.current) return;
 
@@ -187,7 +187,7 @@ const Music = () => {
                     onClick={() => openSpotify(song.url)}
                     className="spotify-button"
                   >
-                    Open in Spotify
+                    Play
                   </button>
                 </div>
               </div>

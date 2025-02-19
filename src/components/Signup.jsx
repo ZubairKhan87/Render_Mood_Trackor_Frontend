@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Eye, EyeOff, Heart, Music, Brain, Check, CloudMoon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import "./LoginForm.css";
-
+import axiosInstance from './axiosInstance';
 
 const SignUpForm = () => {
   const navigate = useNavigate();
@@ -90,37 +90,29 @@ const SignUpForm = () => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
-
+  
     if (!validateForm()) return;
-
+  
     setIsLoading(true);
-
+  
     try {
-      const response = await fetch('http://localhost:8000/api/signup/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess(data.message || "Account created successfully!");
+      const response = await axiosInstance.post('/api/signup/', formData);
+  
+      if (response.status === 201) {
+        setSuccess(response.data.message || "Account created successfully!");
         setTimeout(() => {
           navigate('/emotions');
         }, 1500);
       } else {
-        setError(data.detail || "Signup failed");
+        setError(response.data.detail || "Signup failed");
       }
     } catch (err) {
-      setError("Network error. Please try again.");
+      setError(err.response?.data?.detail || "Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   const togglePasswordVisibility = (field) => {
     setShowPassword(prev => ({
       ...prev,

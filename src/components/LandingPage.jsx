@@ -1,9 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Music, UserPlus, LogIn, ArrowRight, Heart } from 'lucide-react';
+import { Music, UserPlus, LogIn, ArrowRight, Heart,CloudMoon} from 'lucide-react';
 import './LandingPage.css';  // We'll create this CSS file next
 import { useNavigate } from 'react-router-dom';
-
 // Shared Animation Variants
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -26,7 +25,10 @@ const LandingPage = () => {
       <nav className="navbar">
         <div className="logo-container">
           <Music className="logo-icon" />
-          <span className="logo-text">MoodPlay</span>
+         
+          {/* <span className="logo-text">MindfulMood</span> */}
+          <CloudMoon className="ant-login-brand-icon" />
+          <h1 className='heading1'>MindfulMood</h1>
         </div>
         <div className="nav-buttons">
           <button onClick={HandleLogin} className="btn btn-secondary">Login</button>

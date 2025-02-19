@@ -941,3 +941,51 @@
   border: rebeccapurple;
   background-color: white;
 }
+
+/* Header Buttons Container */
+.header-buttons {
+  position: fixed;
+  top: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+  z-index: 100;
+  width: 100%;
+}
+
+/* Individual Header Button */
+.header-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4A90E2;
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  height: 40px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  color: white;
+  gap: 0.5rem;
+}
+
+.header-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header-buttons {
+    padding: 0 1rem;
+  }
+  
+  .header-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
