@@ -42,9 +42,8 @@ const LoginForm = () => {
   useEffect(() => {
     const getCsrfToken = async () => {
       try {
-        await axiosInstance.get("/api/get-csrf-token/", {
-          withCredentials: true, // Ensure cookies are sent
-        });
+        const response = await axiosInstance.get("/api/get-csrf-token/");
+        // The token will be automatically set in cookies and handled by axios
       } catch (error) {
         console.error("Error fetching CSRF token:", error);
       }
@@ -57,38 +56,25 @@ const LoginForm = () => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
-
+    
     try {
-      const csrfToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("csrftoken="))
-        ?.split("=")[1];
-
       const response = await axiosInstance.post(
         "/api/login/",
         {
           email: formData.email,
           password: formData.password,
-        },
-        {
-          headers: {
-            "X-CSRFToken": csrfToken, // Send CSRF token
-          },
-          withCredentials: true, // Include cookies for authentication
         }
-      );
-
+      );  // No need to manually set CSRF header as axios will handle it
+      
       if (response.status === 200) {
         setSuccess("Login successful!");
         localStorage.setItem("userData", JSON.stringify(response.data.user));
         setTimeout(() => {
           navigate("/emotions");
         }, 1500);
-      } else {
-        setError(response.data.detail || "Login failed");
       }
     } catch (error) {
-      setError("Network error. Please try again.");
+      setError(error.response?.data?.detail || "Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
